@@ -36,7 +36,7 @@ namespace inmobiliaria_AT.Controllers
                 }
 
                 var contrato = await _context.Contrato
-                    .Where(c => c.Id == idContrato && c.Prop.Id == parsedUserId)
+                    .Where(c => c.Id == idContrato && c.Inmu.IdPropietario == parsedUserId)
                     .FirstOrDefaultAsync();
 
                 if (contrato == null)

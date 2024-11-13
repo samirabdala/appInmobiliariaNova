@@ -39,7 +39,7 @@ namespace Inmobiliaria_.Net_Core.Controllers
 
 
             var contratos = await _context.Contrato
-                .Where(c => c.PropId == parsedUserId &&
+                .Where(c => c.Inmu.IdPropietario == parsedUserId &&
                             c.FechaInicio <= currentDateTime &&
                             c.FechaFin >= currentDateTime)
                 .Include(c => c.Inqui) // Incluye la información del inquilino
@@ -73,7 +73,7 @@ namespace Inmobiliaria_.Net_Core.Controllers
             var contrato = await _context.Contrato
                 .Include(c => c.Inqui)
                 .Include(c => c.Inmu)
-                .FirstOrDefaultAsync(c => c.Id == id  && c.PropId == parsedUserId);
+                .FirstOrDefaultAsync(c => c.Id == id  && c.Inmu.IdPropietario == parsedUserId);
 
             if (contrato == null)
             {

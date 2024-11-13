@@ -67,7 +67,7 @@ namespace Inmobiliaria_.Net_Core.Controllers
             var currentDate = DateTime.Now;
 
             var inquilino = await _context.Contrato
-                .Where(c => c.Prop.Id == parsedUserId &&
+                .Where(c => c.Inmu.IdPropietario == parsedUserId &&
                             c.Inqui.Id == id &&
                             c.FechaInicio <= currentDate &&
                             c.FechaFin >= currentDate)
@@ -82,7 +82,7 @@ namespace Inmobiliaria_.Net_Core.Controllers
 
             if (inquilino == null)
             {
-                return NotFound();
+                return NotFound("Inquilino no encontrado.");
             }
 
             return Ok(inquilino);
