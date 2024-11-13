@@ -14,7 +14,7 @@ namespace Inmobiliaria_.Net_Core.Controllers
     [ApiController]
     public class ContratoController : ControllerBase
     {
-        private readonly AppDbContext _context; 
+        private readonly AppDbContext _context;
         private readonly ILogger<InquilinoController> _logger;
 
 
@@ -64,69 +64,27 @@ namespace Inmobiliaria_.Net_Core.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Contrato>> GetById(int id)
         {
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int parsedUserId))
+            {
+                return BadRequest("El ID del propietario no es válido.");
+            }
             var contrato = await _context.Contrato
                 .Include(c => c.Inqui)
                 .Include(c => c.Inmu)
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .FirstOrDefaultAsync(c => c.Id == id  && c.PropId == parsedUserId);
 
             if (contrato == null)
             {
-                return NotFound();
+                return NotFound("Contrato no encontrado o no pertenece al propietario.");
             }
 
             return Ok(contrato);
         }
 
-        // POST: api/Contrato
-        [HttpPost]
-        public async Task<ActionResult<Contrato>> Create(Contrato contrato)
-        {
-            if (contrato == null)
-            {
-                return BadRequest("Contrato no puede ser nulo.");
-            }
 
-            _context.Contrato.Add(contrato);
-            await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetById), new { id = contrato.Id }, contrato);
-        }
 
-        // PUT: api/Contrato/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, Contrato contrato)
-        {
-            if (id != contrato.Id)
-            {
-                return BadRequest("El ID del contrato no coincide.");
-            }
-
-            _context.Entry(contrato).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ContratoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-       
-
-        private bool ContratoExists(int id)
-        {
-            return _context.Contrato.Any(e => e.Id == id);
-        }
     }
 }

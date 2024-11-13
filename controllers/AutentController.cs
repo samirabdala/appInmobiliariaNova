@@ -152,7 +152,7 @@ namespace inmobiliaria_AT.Controllers
         }
 
         [HttpGet("restablecer_password")]
-        [Authorize] 
+        [Authorize]
         public async Task<IActionResult> RestablecerPassword()
         {
             try
@@ -195,7 +195,7 @@ namespace inmobiliaria_AT.Controllers
 
                 using (var client = new SmtpClient())
                 {
-                    client.ServerCertificateValidationCallback = (s, c, h, e) => true; 
+                    client.ServerCertificateValidationCallback = (s, c, h, e) => true;
                     await client.ConnectAsync(_configuration["EmailSettings:SMTPHost"], int.Parse(_configuration["EmailSettings:SMTPPort"]), MailKit.Security.SecureSocketOptions.StartTls);
                     await client.AuthenticateAsync(_configuration["EmailSettings:SMTPUser"], _configuration["EmailSettings:SMTPPass"]);
                     await client.SendAsync(message);
@@ -279,51 +279,7 @@ namespace inmobiliaria_AT.Controllers
         }
 
 
-        public class ContraseñaRequest
-        {
-            public string Password { get; set; }
-        }
-
-        //HASHEA LA CONTRASEÑA
-        [HttpPost("generate")]
-        public IActionResult GenerarHash([FromBody] ContraseñaRequest request)
-        {
-            if (string.IsNullOrEmpty(request.Password))
-            {
-                return BadRequest("La contraseña no puede estar vacía.");
-            }
-
-            var hash = HashPassword(request.Password);
-
-            return Ok(new { ContraseñaHasheada = hash });
-        }
-
-
-        [Authorize]
-        [HttpGet("validar_token")]
-        public IActionResult ValidarToken()
-        {
-            try
-            {
-                var emailClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
-                if (string.IsNullOrEmpty(emailClaim))
-                {
-                    return Unauthorized("Token inválido.");
-                }
-
-                var propietarioDb = contexto.Propietario.FirstOrDefault(x => x.Email == emailClaim);
-                if (propietarioDb == null)
-                {
-                    return NotFound("El propietario no existe.");
-                }
-
-                return Ok(propietarioDb);
-            }
-            catch (Exception ex)
-            {
-                return Unauthorized("Token inválido o no se pudo procesar.");
-            }
-        }
+       
 
     }
 

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using inmobiliaria_AT.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace inmobiliaria_AT.Controllers
 {
@@ -24,15 +25,23 @@ namespace inmobiliaria_AT.Controllers
         }
 
         [HttpGet("{idContrato}")]
-       
-            public async Task<IActionResult> GetPagosPorContrato(int idContrato)
+        public async Task<IActionResult> GetPagosPorContrato(int idContrato)
         {
             try
             {
-                var contrato = await _context.Contrato.FindAsync(idContrato);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int parsedUserId))
+                {
+                    return BadRequest(new { mensaje = "El ID del propietario no es válido." });
+                }
+
+                var contrato = await _context.Contrato
+                    .Where(c => c.Id == idContrato && c.Prop.Id == parsedUserId)
+                    .FirstOrDefaultAsync();
+
                 if (contrato == null)
                 {
-                    return NotFound(new { mensaje = "Contrato no encontrado" });
+                    return NotFound(new { mensaje = "Contrato no pertenece al usuario autenticado." });
                 }
 
                 var pagos = await _context.Pago
@@ -40,18 +49,20 @@ namespace inmobiliaria_AT.Controllers
                     .Include(p => p.Concepto)
                     .ToListAsync();
 
+
                 if (pagos == null || pagos.Count == 0)
                 {
-                    return NotFound(new { mensaje = "No se encontraron pagos para el contrato especificado" });
+                    return NotFound(new { mensaje = "No se encontraron pagos para el contrato especificado." });
                 }
 
                 return Ok(pagos);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = "Error interno del servidor", detalle = ex.Message });
+                return BadRequest($"Error al obtener los pagos: {ex.Message}");
             }
         }
+
 
 
     }

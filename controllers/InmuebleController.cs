@@ -23,6 +23,7 @@ namespace Inmobiliaria_.Net_Core.Controllers
             _logger = logger;
         }
 
+
         // GET: api/inmueble
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Inmueble>>> GetAll()
@@ -35,7 +36,7 @@ namespace Inmobiliaria_.Net_Core.Controllers
             }
 
             var inmueble = await _context.Inmueble
-                .Where(i => i.IdPropietario == parsedUserId) 
+                .Where(i => i.IdPropietario == parsedUserId)
                 .Include(i => i.Tipo)
                 .ToListAsync();
 
@@ -74,7 +75,7 @@ namespace Inmobiliaria_.Net_Core.Controllers
             {
                 return BadRequest("El ID del propietario no es válido.");
             }
-            entidad.IdPropietario = parsedUserId; 
+            entidad.IdPropietario = parsedUserId;
 
             _context.Entry(entidad.Tipo).State = EntityState.Unchanged;
 
@@ -88,73 +89,30 @@ namespace Inmobiliaria_.Net_Core.Controllers
         }
 
 
-
-        // PUT: api/inmueble/{id}
-        [HttpPut("{id}")]
-        public async Task<ActionResult> Update(int id, [FromBody] Inmueble entidad)
+        [HttpPatch("cambiarEstado/{id}")]
+        public async Task<IActionResult> CambiarDisponibilidad([FromRoute] int id, [FromForm] bool estado)
         {
-            if (id != entidad.Id)
-            {
-                return BadRequest();
-            }
-
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int parsedUserId))
             {
                 return BadRequest("El ID del propietario no es válido.");
             }
 
-            var inmuebleExistente = await _context.Inmueble
+            var inmueble = await _context.Inmueble
                 .FirstOrDefaultAsync(i => i.Id == id && i.IdPropietario == parsedUserId);
-            if (inmuebleExistente == null)
-            {
-                return NotFound();
-            }
-
-            _context.Entry(entidad).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await InmuebleExists(id))
-                {
-                    return NotFound();
-                }
-                throw;
-            }
-
-            return NoContent();
-        }
-
-       
-
-        [HttpPatch("cambiarEstado/{id}")]
-        public async Task<IActionResult> CambiarDisponibilidad([FromRoute] int id, [FromForm] bool estado)
-        {
-            var inmueble = await _context.Inmueble.FindAsync(id);
 
             if (inmueble == null)
             {
-                return NotFound(new { mensaje = "Inmueble no encontrado" });
+                return NotFound(new { mensaje = "Inmueble no encontrado o no pertenece al usuario." });
             }
-
+           
             inmueble.Estado = estado;
             _context.Inmueble.Update(inmueble);
             await _context.SaveChangesAsync();
 
-            return Ok(new { mensaje = "Disponibilidad actualizada exitosamente" });
+            return Ok(new { mensaje = "Estado actualizado exitosamente" });
         }
 
-
-
-
-        private async Task<bool> InmuebleExists(int id)
-        {
-            return await _context.Inmueble.AnyAsync(e => e.Id == id);
-        }
 
         [HttpGet("tipos")]
         public async Task<ActionResult<IEnumerable<Tipo>>> GetTipos()
@@ -162,9 +120,6 @@ namespace Inmobiliaria_.Net_Core.Controllers
             var tipos = await _context.Tipo.ToListAsync();
             return Ok(tipos);
         }
-
-
-
 
     }
 }

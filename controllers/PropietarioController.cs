@@ -27,7 +27,7 @@ namespace inmobiliaria_AT.Controllers
 
         // GET: api/propietario
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetPropietario()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -56,79 +56,31 @@ namespace inmobiliaria_AT.Controllers
         [HttpPut]
         public async Task<IActionResult> Actualizar([FromForm] Propietario propietario)
         {
+
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int parsedUserId))
+            {
+                return BadRequest("El ID del propietario no es válido.");
+            }
+
             // Busca el propietario por su email
-            var propietarioExistente = await _context.Propietario.FirstOrDefaultAsync(p => p.Email == propietario.Email);
+            var propietarioExistente = await _context.Propietario.FirstOrDefaultAsync(p => p.Id == parsedUserId);
             if (propietarioExistente == null)
             {
-                return NotFound(); 
+                return NotFound();
             }
 
             propietarioExistente.Nombre = propietario.Nombre;
             propietarioExistente.Apellido = propietario.Apellido;
             propietarioExistente.Telefono = propietario.Telefono;
             propietarioExistente.Documento = propietario.Documento;
-            propietarioExistente.Direccion = propietario.Direccion; 
-            propietarioExistente.Avatar = propietario.Avatar; 
+            propietarioExistente.Direccion = propietario.Direccion;
+            propietarioExistente.Avatar = propietario.Avatar;
 
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-
-        [HttpPatch("avatar")]
-        public async Task<IActionResult> Avatar(IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest("No se ha seleccionado ningún archivo.");
-            }
-
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            var propietario = await _context.Propietario.SingleOrDefaultAsync(x => x.Email == email);
-
-            if (propietario == null)
-            {
-                return NotFound("Propietario no encontrado.");
-            }
-
-            // creo un directorio para almacenar las imágenes, si no existe
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-            if (!Directory.Exists(uploadsFolder))
-            {
-                Directory.CreateDirectory(uploadsFolder);
-            }
-
-            // Genero un nombre unico para el archivo
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            try
-            {
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream); // Guarda la imagen en el sistema de archivos
-                }
-            }
-            catch (Exception e)
-            {
-                return BadRequest("Error al guardar la imagen: " + e.Message);
-            }
-
-            // Establece la URL del avatar
-            var imageUrl = $"/uploads/{fileName}";
-            propietario.Avatar = imageUrl; 
-
-            try
-            {
-                await _context.SaveChangesAsync(); 
-            }
-            catch (Exception e)
-            {
-                return BadRequest("Error al actualizar el avatar: " + e.Message);
-            }
-
-            return Ok(new { Url = imageUrl }); // retorna la url
         }
 
 

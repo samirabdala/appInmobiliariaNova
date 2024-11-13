@@ -268,3 +268,4 @@ C:\Users\samir\AndroidStudioProjects\Labo3\inmobiliaria_api\obj\Debug\net8.0\ref
 C:\Users\samir\AndroidStudioProjects\Labo3\inmobiliaria_api\obj\Debug\net8.0\inmobiliaria_api.pdb
 C:\Users\samir\AndroidStudioProjects\Labo3\inmobiliaria_api\obj\Debug\net8.0\inmobiliaria_api.genruntimeconfig.cache
 C:\Users\samir\AndroidStudioProjects\Labo3\inmobiliaria_api\obj\Debug\net8.0\ref\inmobiliaria_api.dll
+C:\Users\samir\AndroidStudioProjects\Labo3\inmobiliaria_api\obj\Debug\net8.0\inmobiliaria_api.sourcelink.json

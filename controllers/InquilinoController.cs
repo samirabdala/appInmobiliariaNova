@@ -36,13 +36,17 @@ namespace Inmobiliaria_.Net_Core.Controllers
             var currentDate = DateTime.Now.Date;
 
             var contratos = await _context.Contrato
-                .Where(c => c.Prop.Id == parsedUserId &&
+                .Where(c => c.Inmu.IdPropietario == parsedUserId &&
                             c.FechaInicio <= currentDate &&
                             c.FechaFin >= currentDate)
                 .Include(c => c.Inqui) // Incluye la info del inquilino
                 .Include(c => c.Inmu) // Incluye la info del inmueble
                 .ToListAsync();
 
+            if (contratos == null || contratos.Count == 0)
+            {
+                return NotFound("No se encontraron contratos.");
+            }
             return Ok(contratos);
         }
 
@@ -83,5 +87,6 @@ namespace Inmobiliaria_.Net_Core.Controllers
 
             return Ok(inquilino);
         }
+
     }
 }
